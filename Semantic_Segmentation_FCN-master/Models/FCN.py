@@ -24,7 +24,6 @@ def bilinear_kernel(in_channels, out_channels, kernel_size):
     return torch.from_numpy(weight)
 
 
-
 pretrained_net = models.vgg16_bn(pretrained=False)
 
 
@@ -54,40 +53,35 @@ class FCN(nn.Module):
         self.upsample_2x_2 = nn.ConvTranspose2d(256, 256, 4, 2, 1, bias=False)
         self.upsample_2x_2.weight.data = bilinear_kernel(256, 256, 4)
 
-    def forward(self, x):   # 352, 480, 3
-        s1 = self.stage1(x)     # 176, 240, 64
-        s2 = self.stage2(s1)    # 88, 120, 128
-        s3 = self.stage3(s2)    # 44, 60, 256
-        s4 = self.stage4(s3)    # 22, 30, 512
-        s5 = self.stage5(s4)    # 11, 15, 512
+    def forward(self, x):
+        s1 = self.stage1(x)
+        s2 = self.stage2(s1)
+        s3 = self.stage3(s2)
+        s4 = self.stage4(s3)
+        s5 = self.stage5(s4)
 
-        scores1 = self.scores1(s5)  # 11, 15, 12
-        s5 = self.upsample_2x_1(s5) # 22, 30, 512
-        add1 = s4 + s5  # 22, 30, 512
+        scores1 = self.scores1(s5)
+        s5 = self.upsample_2x_1(s5)
+        add1 = s5 + s4
 
-        scores2 = self.scores2(add1)    # 22, 30, 12
-        add1 = self.conv_trans1(add1)   # 22, 30, 256
-        add1 = self.upsample_2x_2(add1) # 44, 60, 256
+        scores2 = self.scores2(add1)
 
-        add2 = add1 + s3    # 44, 60, 256
+        add1 = self.conv_trans1(add1)
+        add1 = self.upsample_2x_2(add1)
+        add2 = add1 + s3
 
-        add2 = self.conv_trans2(add2)   # 44，60，12
-        scores3 = self.upsample_8x(add2)    # 352, 480, 12
-
-        return scores3
-
-
+        output = self.conv_trans2(add2)
+        output = self.upsample_8x(output)
+        return output
 
 
 if __name__ == "__main__":
-    # import torch as t
-    # print('-----'*5)
-    # rgb = t.randn(1, 3, 352, 480)
-    #
-    # net = FCN(12)
-    #
-    # out = net(rgb)
-    #
-    # print(out.shape)
+    import torch as t
+    print('-----'*5)
+    rgb = t.randn(1, 3, 352, 480)
 
-    print(bilinear_kernel(3,3,4).shape)
+    net = FCN(12)
+
+    out = net(rgb)
+
+    print(out.shape)

@@ -8,6 +8,7 @@
 *.lst
 *.ipynb
 *.csv
+*.pdf
 
 !requirement.txt
 

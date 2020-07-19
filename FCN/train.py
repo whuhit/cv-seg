@@ -66,7 +66,7 @@ def train(model):
             print(".........")
 
 
-
+train(fcn)
 
 
 

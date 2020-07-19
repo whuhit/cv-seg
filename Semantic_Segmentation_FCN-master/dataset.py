@@ -1,4 +1,3 @@
-"""补充内容见 data process and load.ipynb"""
 import pandas as pd
 import os
 import torch as t
@@ -10,7 +9,7 @@ import torchvision.transforms as transforms
 import cfg
 
 
-class LabelProcessor:
+class LabelProcessor:   # 对应data process and load.ipynb 1.处理标签文件中colormap的数据
     """对标签图像的编码"""
 
     def __init__(self, file_path):
@@ -46,7 +45,7 @@ class LabelProcessor:
         return np.array(self.cm2lbl[idx], dtype='int64')
 
 
-class CamvidDataset(Dataset):
+class LoadDataset(Dataset):
     def __init__(self, file_path=[], crop_size=None):
         """para:
             file_path(list): 数据和标签路径,列表元素第一个为图片路径，第二个为标签路径
@@ -113,21 +112,7 @@ class CamvidDataset(Dataset):
 label_processor = LabelProcessor(cfg.class_dict_path)
 
 if __name__ == "__main__":
-
-    TRAIN_ROOT = './CamVid/train'
-    TRAIN_LABEL = './CamVid/train_labels'
-    VAL_ROOT = './CamVid/val'
-    VAL_LABEL = './CamVid/val_labels'
-    TEST_ROOT = './CamVid/test'
-    TEST_LABEL = './CamVid/test_labels'
-    crop_size = (352, 480)
-    Cam_train = CamvidDataset([TRAIN_ROOT, TRAIN_LABEL], crop_size)
-    Cam_val = CamvidDataset([VAL_ROOT, VAL_LABEL], crop_size)
-    Cam_test = CamvidDataset([TEST_ROOT, TEST_LABEL], crop_size)
-    for sample in Cam_val:
-        img = sample['img']
-        label = sample['label']
-        print(img.shape)
-        print(label[0])
-        break
-
+    train = LoadDataset([cfg.TRAIN_ROOT, cfg.TRAIN_LABEL], cfg.crop_size)
+    val = LoadDataset([cfg.VAL_ROOT, cfg.VAL_LABEL], cfg.crop_size)
+    if cfg.TEST_ROOT is not None:
+        test = LoadDataset([cfg.TEST_ROOT, cfg.TEST_LABEL], cfg.crop_size)
