@@ -1,4 +1,3 @@
-"""补充内容见evaluate.ipynb"""
 from __future__ import division
 
 import numpy as np
@@ -99,7 +98,6 @@ def calc_semantic_segmentation_iou(confusion):
                        - np.diag(confusion))
     iou = np.diag(confusion) / iou_denominator
     return iou
-    # return iou
 
 
 def eval_semantic_segmentation(pred_labels, gt_labels):
@@ -184,4 +182,3 @@ def eval_semantic_segmentation(pred_labels, gt_labels):
             'pixel_accuracy': pixel_accuracy,
             'class_accuracy': class_accuracy,
             'mean_class_accuracy': np.nanmean(class_accuracy)}
-            # 'mean_class_accuracy': np.nanmean(class_accuracy)}

@@ -1,16 +1,15 @@
-import torch as t
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from datetime import datetime
 from dataset import CamvidDataset
 from evalution_segmentaion import eval_semantic_segmentation
-from FCN import FCN
+from FCN import FCN8s
 import cfg
 
-device = t.device("cuda") if t.cuda.is_available() else t.device("cpu")
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 Cam_train = CamvidDataset([cfg.TRAIN_ROOT, cfg.TRAIN_LABEL], cfg.crop_size)
 Cam_val = CamvidDataset([cfg.VAL_ROOT, cfg.VAL_LABEL], cfg.crop_size)
@@ -18,7 +17,7 @@ Cam_val = CamvidDataset([cfg.VAL_ROOT, cfg.VAL_LABEL], cfg.crop_size)
 train_data = DataLoader(Cam_train, batch_size=cfg.BATCH_SIZE, shuffle=True, num_workers=1)
 val_data = DataLoader(Cam_val, batch_size=cfg.BATCH_SIZE, shuffle=True, num_workers=1)
 
-fcn = FCN(12)
+fcn = FCN8s(num_classes=12)
 fcn = fcn.to(device)
 criterion = nn.NLLLoss().to(device)
 optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
@@ -63,7 +62,7 @@ def train(model):
             train_miou += eval_metric["miou"]
             train_class_acc += eval_metric["class_accuracy"]
 
-            print(".........")
+            print(f"train_acc:{train_acc},train_miou:{train_miou},train_class_acc:{train_class_acc}")
 
 
 train(fcn)
