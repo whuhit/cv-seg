@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
-# from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from dataset import CamvidDataset
-from evalution_segmentaion import eval_semantic_segmentation
+from evalution_segmentaion import eval_semantic_segmentation, calc_semantic_segmentation_confusion, calc_semantic_segmentation_iou
 from FCN import FCN8s
 import cfg
+import numpy as np
+
 
 device = torch.device(
     "cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -27,10 +28,32 @@ val_data = DataLoader(
     num_workers=1)
 
 fcn = FCN8s(num_classes=12)
-fcn.init("weights/miou-15.87087588586221.pt")
+fcn.init("weights/best.pt")
 fcn = fcn.to(device)
 criterion = nn.NLLLoss().to(device)
 optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
+
+
+def val(model):
+    confusions = np.zeros((12, 12), dtype=np.int64)
+    for i, sample in enumerate(val_data):
+        data = sample['img'].to(device)
+        label = sample['label'].to(device)
+        out = model(data)
+        out = F.log_softmax(out, dim=1)
+
+        pre_label = out.max(dim=1)[1].data.cpu().numpy()
+        pre_label = [i for i in pre_label]
+
+        true_label = label.data.cpu().numpy()
+        true_label = [i for i in true_label]
+
+        confusion = calc_semantic_segmentation_confusion(pre_label, true_label)
+        confusions += confusion
+        print(i)
+    iou = calc_semantic_segmentation_iou(confusions)  # (12, )
+    miou = np.nanmean(iou)
+    return miou
 
 
 def train(model):
@@ -44,9 +67,6 @@ def train(model):
                 group["lr"] *= 0.5
 
         train_loss = 0
-        train_acc = 0
-        train_miou = 0
-        train_class_acc = 0
 
         for i, sample in enumerate(train_data):
             img_data = sample["img"].to(device)
@@ -68,16 +88,14 @@ def train(model):
             true_label = [i for i in true_label]
 
             eval_metric = eval_semantic_segmentation(pre_label, true_label)
-            train_acc += eval_metric["mean_class_accuracy"]
-            train_miou += eval_metric["miou"]
-            train_class_acc += eval_metric["class_accuracy"]
-            print(f"iteration {i} : miou={train_miou}")
+            print(f"iteration {i} : miou={eval_metric['miou']}")
 
-        if train_miou > best:
-            best = train_miou
-            torch.save(fcn.state_dict(), f"weights/best.pt")
-        print(
-            f"train_acc:{train_acc}, train_miou:{train_miou}, train_class_acc:{train_class_acc}")
+        val_miou = val(net)
+
+        if val_miou > best:
+            best = val_miou
+            torch.save(net.state_dict(), f"weights/best-{val_miou}.pth")
+        print(f"epoch:{epoch}, miou:{val_miou}")
 
 
 train(fcn)
