@@ -27,7 +27,7 @@ val_data = DataLoader(
     num_workers=1)
 
 fcn = FCN8s(num_classes=12)
-fcn.init("weights/miou-14.175091329415995.pt")
+fcn.init("weights/miou-15.87087588586221.pt")
 fcn = fcn.to(device)
 criterion = nn.NLLLoss().to(device)
 optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
@@ -75,7 +75,7 @@ def train(model):
 
         if train_miou > best:
             best = train_miou
-            torch.save(fcn.state_dict(), f"weights/miou-{best}.pt")
+            torch.save(fcn.state_dict(), f"weights/best.pt")
         print(
             f"train_acc:{train_acc}, train_miou:{train_miou}, train_class_acc:{train_class_acc}")
 
