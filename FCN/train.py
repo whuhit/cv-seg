@@ -4,34 +4,11 @@ import torch.nn.functional as F
 from torch import optim
 from torch.utils.data import DataLoader
 from dataset import CamvidDataset
-from evalution_segmentaion import eval_semantic_segmentation, calc_semantic_segmentation_confusion, calc_semantic_segmentation_iou
+from evalution_segmentaion import eval_semantic_segmentation, calc_semantic_segmentation_confusion, \
+    calc_semantic_segmentation_iou
 from FCN import FCN8s
 import cfg
 import numpy as np
-
-
-device = torch.device(
-    "cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-Cam_train = CamvidDataset([cfg.TRAIN_ROOT, cfg.TRAIN_LABEL], cfg.crop_size)
-Cam_val = CamvidDataset([cfg.VAL_ROOT, cfg.VAL_LABEL], cfg.crop_size)
-
-train_data = DataLoader(
-    Cam_train,
-    batch_size=cfg.BATCH_SIZE,
-    shuffle=True,
-    num_workers=1)
-val_data = DataLoader(
-    Cam_val,
-    batch_size=4,
-    shuffle=True,
-    num_workers=1)
-
-fcn = FCN8s(num_classes=12)
-fcn.init("weights/best.pt")
-fcn = fcn.to(device)
-criterion = nn.NLLLoss().to(device)
-optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
 
 
 def val(model):
@@ -50,13 +27,17 @@ def val(model):
 
         confusion = calc_semantic_segmentation_confusion(pre_label, true_label)
         confusions += confusion
-        print(i)
     iou = calc_semantic_segmentation_iou(confusions)  # (12, )
     miou = np.nanmean(iou)
     return miou
 
 
 def train(model):
+    model.init("weights/best-0.598822537319195.pth")
+    fcn = model.to(device)
+    criterion = nn.NLLLoss().to(device)
+    optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
+
     best = 0
     net = model.train()
     # 训练轮次
@@ -98,4 +79,23 @@ def train(model):
         print(f"epoch:{epoch}, miou:{val_miou}")
 
 
-train(fcn)
+if __name__ == '__main__':
+    device = torch.device(
+        "cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    Cam_train = CamvidDataset([cfg.TRAIN_ROOT, cfg.TRAIN_LABEL], cfg.crop_size)
+    Cam_val = CamvidDataset([cfg.VAL_ROOT, cfg.VAL_LABEL], cfg.crop_size)
+
+    train_data = DataLoader(
+        Cam_train,
+        batch_size=16,
+        shuffle=True,
+        num_workers=1)
+    val_data = DataLoader(
+        Cam_val,
+        batch_size=4,
+        shuffle=False,
+        num_workers=1)
+
+    fcn = FCN8s(num_classes=12)
+    train(fcn)

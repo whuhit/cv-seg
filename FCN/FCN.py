@@ -28,13 +28,10 @@ def bilinear_kernel(in_channels, out_channels, kernel_size):
     return torch.from_numpy(weight)
 
 
-pretrained_net = models.vgg16_bn(pretrained=False)
-
-
 class FCN8s(nn.Module):
     def __init__(self, num_classes):
         super().__init__()
-
+        pretrained_net = models.vgg16_bn(pretrained=False)
         self.stage1 = pretrained_net.features[:7]
         self.stage2 = pretrained_net.features[7:14]
         self.stage3 = pretrained_net.features[14:24]
@@ -66,13 +63,12 @@ class FCN8s(nn.Module):
         s4 = self.stage4(s3)    # 22, 30, 512
         s5 = self.stage5(s4)    # 11, 15, 512
 
-        s5 = self.upsample_2x_1(s5)  # 22, 30, 512
-        add1 = s4 + s5  # 22, 30, 512
+        up4 = self.upsample_2x_1(s5)  # 22, 30, 512
+        add1 = s4 + up4  # 22, 30, 512
 
         add1 = self.conv_trans1(add1)   # 22, 30, 256 1*1卷积改变维度
-        add1 = self.upsample_2x_2(add1)  # 44, 60, 256
-
-        add2 = add1 + s3    # 44, 60, 256
+        up3 = self.upsample_2x_2(add1)  # 44, 60, 256
+        add2 = up3 + s3    # 44, 60, 256
 
         add2 = self.conv_trans2(add2)   # 44，60，12
         fcn8s = self.upsample_8x(add2)    # 352, 480, 12
@@ -81,8 +77,6 @@ class FCN8s(nn.Module):
 
     def init(self, pretrained=None):
         self.load_state_dict(torch.load(pretrained))
-
-
 
 
 if __name__ == "__main__":
