@@ -23,7 +23,7 @@ train_data = DataLoader(
     num_workers=1)
 val_data = DataLoader(
     Cam_val,
-    batch_size=cfg.BATCH_SIZE,
+    batch_size=4,
     shuffle=True,
     num_workers=1)
 
