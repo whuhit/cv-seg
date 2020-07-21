@@ -1,4 +1,4 @@
-BATCH_SIZE = 32
+BATCH_SIZE = 16
 EPOCH_NUMBER = 2
 TRAIN_ROOT = './CamVid/train'
 TRAIN_LABEL = './CamVid/train_labels'
