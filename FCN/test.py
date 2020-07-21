@@ -9,7 +9,7 @@ import cfg
 
 device = t.device('cuda') if t.cuda.is_available() else t.device('cpu')
 
-BATCH_SIZE = 12
+BATCH_SIZE = 8
 miou_list = [0]
 
 Cam_test = CamvidDataset([cfg.TEST_ROOT, cfg.TEST_LABEL], cfg.crop_size)
