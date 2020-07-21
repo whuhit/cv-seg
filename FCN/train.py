@@ -27,6 +27,7 @@ val_data = DataLoader(
     num_workers=1)
 
 fcn = FCN8s(num_classes=12)
+fcn.init("weights/miou-14.175091329415995.pt")
 fcn = fcn.to(device)
 criterion = nn.NLLLoss().to(device)
 optimizer = optim.Adam(fcn.parameters(), lr=1e-4)
@@ -70,6 +71,7 @@ def train(model):
             train_acc += eval_metric["mean_class_accuracy"]
             train_miou += eval_metric["miou"]
             train_class_acc += eval_metric["class_accuracy"]
+            print(f"iteration {i} : miou={train_miou}")
 
         if train_miou > best:
             best = train_miou

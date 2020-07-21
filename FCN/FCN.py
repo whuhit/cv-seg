@@ -28,7 +28,7 @@ def bilinear_kernel(in_channels, out_channels, kernel_size):
     return torch.from_numpy(weight)
 
 
-pretrained_net = models.vgg16_bn(pretrained=True)
+pretrained_net = models.vgg16_bn(pretrained=False)
 
 
 class FCN8s(nn.Module):
@@ -78,6 +78,11 @@ class FCN8s(nn.Module):
         fcn8s = self.upsample_8x(add2)    # 352, 480, 12
 
         return fcn8s
+
+    def init(self, pretrained=None):
+        self.load_state_dict(torch.load(pretrained))
+
+
 
 
 if __name__ == "__main__":
