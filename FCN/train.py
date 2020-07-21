@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch import optim
-from torch.autograd import Variable
+# from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from dataset import CamvidDataset
 from evalution_segmentaion import eval_semantic_segmentation
@@ -39,8 +39,8 @@ def train(model):
         train_class_acc = 0
 
         for i, sample in enumerate(train_data):
-            img_data = Variable(sample["img"].to(device))
-            img_label = Variable(sample["label"].to(device))
+            img_data = sample["img"].to(device)
+            img_label = sample["label"].to(device)
 
             out = net(img_data)
             out = F.log_softmax(out, dim=1)
