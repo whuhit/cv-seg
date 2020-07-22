@@ -18,7 +18,7 @@ test_data = DataLoader(Cam_test, batch_size=BATCH_SIZE, shuffle=True, num_worker
 net = FCN8s(12)
 net.eval()
 net.to(device)
-net.load_state_dict(t.load('weights/best.pt', map_location='cpu'))
+net.load_state_dict(t.load('weights/best-0.5993959664353247.pth', map_location='cpu'))
 
 train_acc = 0
 train_miou = 0
